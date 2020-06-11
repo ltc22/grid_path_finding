@@ -40,7 +40,13 @@ obstacles = [[5, 5],
              [2, 4],
              [12, 8],
              [11, 8],
-             [13, 8]]
+             [13, 8],
+             [9, 1],
+             [9, 2],
+             [9, 3],
+             [9, 4],
+             [9, 5],
+             [9, 6]]
 
 # obstacles = []
 
@@ -143,7 +149,7 @@ class Neighbours:
 
     def check_if_point_is_available(self):
         for ele in self.neighbours:
-            if ele.location in obstacles:
+            if (ele.location in obstacles) or (ele.location in ele.coord_array[0:-1]):
                 ele.available = 0
             else:
                 ele.available = 1
@@ -271,10 +277,14 @@ def main():
 
         reached_end = 0
         iteration_count = 0
-        max_iterations = 5000
+        max_iterations = 10000
+
+        stored_points = []
 
         recorded_points = []
         recorded_paths = []
+
+        max_number_of_paths = 500
 
         recorded_points.append(start_point)
 
@@ -283,13 +293,33 @@ def main():
         prev_coords = [start_point.location]
 
 
-        # while (reached_end == 0) and (iteration_count < max_iterations):
-        while reached_end == 0:
+        while (reached_end == 0) and (iteration_count < max_iterations):
+        # while reached_end == 0:
 
-            if recorded_points[-1].location == end_point.location:
+            if recorded_points[-1].location == end_point.location:  # does this confirm shortest path?
                 reached_end = 1
 
             else:
+
+                if len(recorded_points) >= max_number_of_paths:
+                    # print(recorded_points)
+                    # print(len(recorded_points))
+                    for i in range(250):    #max_number_of_paths/2):
+                        # print(i)
+                        # print(recorded_points[i])
+                        stored_points.append(recorded_points[0])
+                        recorded_points.pop(0)
+
+                elif (len(recorded_points) <= 1) and (len(stored_points) > 0):
+                    index = 0
+                    stored_points.sort(key=get_score, reverse=True)
+                    while (index < len(stored_points)) and (index < 250):
+                        # recorded_points.append(stored_points[-1-index])
+                        recorded_points.append(stored_points[-1])
+                        stored_points.pop()
+                        index += 1
+                    recorded_points.sort(key=get_score, reverse=True)  # Last in array is the top of the queue
+
 
                 current_neighbours = Neighbours(recorded_points[-1].location[0], recorded_points[-1].location[1],
                                                 recorded_points[-1].name, recorded_points[-1].coord_array)
@@ -323,6 +353,7 @@ def main():
                 if iteration_count % 100 == 0:
                     print("Still going")
                     print(iteration_count)
+                    print(len(recorded_points))
                     print("\n")
 
                 # Get the neighbour points around the current point being looked at
@@ -339,6 +370,8 @@ def main():
         print("\n")
 
         print(recorded_points[-1].coord_array)
+
+        # print(recorded_points[-1].coord_array[0:-1])
 
         shortest_path = recorded_points[-1].coord_array
 
