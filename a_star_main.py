@@ -4,6 +4,8 @@ import scipy.signal as signal
 import scipy.stats as stats
 import time
 
+import matplotlib.pyplot as plt
+
 
 # Structure:
 #
@@ -20,8 +22,31 @@ import time
 # Add the expanded points to the array, remove the point we expanded from, and
 # repeat until we get to the end and there are no other shorter paths to the end
 #
-#
-#
+
+
+# Global definition, obstacles
+
+obstacles = [[5, 5],
+             [5, 6],
+             [5, 7],
+             [7, 7],
+             [8, 7],
+             [9, 7],
+             [3, 4],
+             [3, 5],
+             [2, 3],
+             [4, 3],
+             [4, 4],
+             [2, 4],
+             [12, 8],
+             [11, 8],
+             [13, 8]]
+
+# obstacles = []
+
+
+
+
 
 
 
@@ -115,7 +140,15 @@ class Neighbours:
         #                           self.f.dist, self.g.dist, self.h.dist]
 
 
-    # def check_if_point_is_unavailable(self):
+
+    def check_if_point_is_available(self):
+        for ele in self.neighbours:
+            if ele.location in obstacles:
+                ele.available = 0
+            else:
+                ele.available = 1
+
+
 
 
     def calculate_combined_score(self):
@@ -163,26 +196,21 @@ class Point:
 
 
 
-# def determine_neighbour_positions(curr_point, end_point):
-
-    # curr_point.neighbours = []
-    #
-    # curr_point.neighbours.append([curr_point.location[0]-1, curr_point.location[1]-1])
-    #
-    # curr_point.a.location = [curr_point.location[0]-1, curr_point.location[1]-1]
-
-
-
-    # for i in range(8):                  #8 possible neighbours for grid
-    #     curr_point.neighbours.append(Coord(curr_point.x, curr_point.y))
-    #     curr_point.neigbours[i].dist = np.sqrt(pow())
-
-
 
 
 
 def get_score(data):
     return data.combined_score
+
+
+
+def create_grid(x, y):
+    max_coord = [y, x]
+    return max_coord
+
+
+# def create_obstacles(buffer):
+
 
 
 
@@ -235,83 +263,118 @@ def main():
     end_point = Coord(end_coord_row, end_coord_column, 'end', [])
 
 
-    reached_end = 0
-    iteration_count = 0
-    max_iterations = 5000
+    if (start_point.location in obstacles) or (end_point.location in obstacles):
+        print("Your start or end point is actually an obstacle!")
 
-    recorded_points = []
-    recorded_paths = []
-
-    recorded_points.append(start_point)
-
-    # coord_array = [start_point.location]
-
-    prev_coords = [start_point.location]
-
-
-    # while (reached_end == 0) and (iteration_count < max_iterations):
-    while reached_end == 0:
-
-        if recorded_points[-1].location == end_point.location:
-            reached_end = 1
-
-        else:
-
-            current_neighbours = Neighbours(recorded_points[-1].location[0], recorded_points[-1].location[1],
-                                            recorded_points[-1].name, recorded_points[-1].coord_array)
-
-            current_neighbours.calculate_dist(recorded_points[-1])
-            current_neighbours.calculate_heuristic_score(end_point)
-            current_neighbours.calculate_combined_score()
-
-            # for ele in current_neighbours.neighbours:
-            #     print(ele.name, ele.combined_score)
-
-
-            # We have fully expanded the latest point, so remove it from the queue
-            recorded_points.pop()
-            for ele in current_neighbours.neighbours:
-                recorded_points.append(ele)
-
-            recorded_points.sort(key=get_score, reverse=True)   # Last in array is the top of the queue
-
-            # print("\n")
-            # print("Iteration count", iteration_count)
-            #
-            # for ele in recorded_points:
-            #     print(ele.name, ele.location, ele.combined_score)
-
-
-            iteration_count += 1
-
-
-            if iteration_count % 100 == 0:
-                print("Still going")
-                print(iteration_count)
-                print("\n")
-
-            # Get the neighbour points around the current point being looked at
-            # first iteration, this is the start point
-
-    print("\n")
-    print("iteration count", iteration_count)
-
-    print("\n")
-    print("last point")
-    print(recorded_points[-1].name, recorded_points[-1].location, recorded_points[-1].combined_score)
-    print("\n")
-    print("number of paths still in queue:", len(recorded_points))
-    print("\n")
-
-    print(recorded_points[-1].coord_array)
-
-    if iteration_count >= max_iterations:
-        print("Maximum iterations reached")
     else:
-        print("Reached the end")
 
 
+        reached_end = 0
+        iteration_count = 0
+        max_iterations = 5000
 
+        recorded_points = []
+        recorded_paths = []
+
+        recorded_points.append(start_point)
+
+        # coord_array = [start_point.location]
+
+        prev_coords = [start_point.location]
+
+
+        # while (reached_end == 0) and (iteration_count < max_iterations):
+        while reached_end == 0:
+
+            if recorded_points[-1].location == end_point.location:
+                reached_end = 1
+
+            else:
+
+                current_neighbours = Neighbours(recorded_points[-1].location[0], recorded_points[-1].location[1],
+                                                recorded_points[-1].name, recorded_points[-1].coord_array)
+
+                current_neighbours.calculate_dist(recorded_points[-1])
+                current_neighbours.calculate_heuristic_score(end_point)
+                current_neighbours.check_if_point_is_available()
+                current_neighbours.calculate_combined_score()
+
+                # for ele in current_neighbours.neighbours:
+                #     print(ele.name, ele.combined_score)
+
+
+                # We have fully expanded the latest point, so remove it from the queue
+                recorded_points.pop()
+                for ele in current_neighbours.neighbours:
+                    recorded_points.append(ele)
+
+                recorded_points.sort(key=get_score, reverse=True)   # Last in array is the top of the queue
+
+                # print("\n")
+                # print("Iteration count", iteration_count)
+                #
+                # for ele in recorded_points:
+                #     print(ele.name, ele.location, ele.combined_score)
+
+
+                iteration_count += 1
+
+
+                if iteration_count % 100 == 0:
+                    print("Still going")
+                    print(iteration_count)
+                    print("\n")
+
+                # Get the neighbour points around the current point being looked at
+                # first iteration, this is the start point
+
+        print("\n")
+        print("iteration count", iteration_count)
+
+        print("\n")
+        print("last point")
+        print(recorded_points[-1].name, recorded_points[-1].location, recorded_points[-1].combined_score)
+        print("\n")
+        print("number of paths still in queue:", len(recorded_points))
+        print("\n")
+
+        print(recorded_points[-1].coord_array)
+
+        shortest_path = recorded_points[-1].coord_array
+
+        if iteration_count >= max_iterations:
+            print("Maximum iterations reached")
+        else:
+            print("Reached the end")
+
+
+        x_coords = []
+        y_coords = []
+        for ele in shortest_path:
+            x_coords.append(ele[1])
+            y_coords.append(ele[0])
+
+        obs_x_coords = []
+        obs_y_coords = []
+        for ele in obstacles:
+            obs_x_coords.append(ele[1])
+            obs_y_coords.append(ele[0])
+
+        axis_lim = 16
+        ticks_array = []
+        for i in range(axis_lim + 1):
+            ticks_array.append(i)
+
+        plt.figure()
+        plt.plot(x_coords, y_coords, 'r', marker='x')
+        plt.scatter(obs_x_coords, obs_y_coords)
+        plt.xlim([0, axis_lim])
+        plt.ylim([0, axis_lim])
+        plt.xticks(ticks_array)
+        plt.yticks(ticks_array)
+        plt.gca().set_aspect('equal', adjustable='box')
+        plt.grid('minor')
+        plt.show()
 
 
 
