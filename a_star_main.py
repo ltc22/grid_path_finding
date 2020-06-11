@@ -27,7 +27,7 @@ import time
 
 class Coord:
 
-    def __init__(self, y, x, name):
+    def __init__(self, y, x, name, prev_coords):     #, old_y, old_x
         self.location = [y, x]
         self.name = name
         self.score = 100000000
@@ -35,21 +35,28 @@ class Coord:
         self.combined_score = 100000000
         self.available = 1
 
+        self.coord_array = prev_coords.copy()
+        self.coord_array.append(self.location)
+
+        # coord_array.append(self.location)
+
+        # self.old_location = [old_y, old_x]
+
 
 
 
 
 class Neighbours:
 
-    def __init__(self, oy, ox, name):
-        self.a = Coord(oy-1, ox-1, name+'->a')
-        self.b = Coord(oy-1, ox, name+'->b')
-        self.c = Coord(oy-1, ox+1, name+'->c')
-        self.d = Coord(oy, ox-1, name+'->d')
-        self.e = Coord(oy, ox+1, name+'->e')
-        self.f = Coord(oy+1, ox-1, name+'->f')
-        self.g = Coord(oy+1, ox, name+'->g')
-        self.h = Coord(oy+1, ox+1, name+'->h')
+    def __init__(self, oy, ox, name, prev_coord):
+        self.a = Coord(oy-1, ox-1, name+'->a', prev_coord)
+        self.b = Coord(oy-1, ox, name+'->b', prev_coord)
+        self.c = Coord(oy-1, ox+1, name+'->c', prev_coord)
+        self.d = Coord(oy, ox-1, name+'->d', prev_coord)
+        self.e = Coord(oy, ox+1, name+'->e', prev_coord)
+        self.f = Coord(oy+1, ox-1, name+'->f', prev_coord)
+        self.g = Coord(oy+1, ox, name+'->g', prev_coord)
+        self.h = Coord(oy+1, ox+1, name+'->h', prev_coord)
 
         self.neighbours = [self.a, self.b, self.c, self.d, self.e, self.f, self.g, self.h]
         self.neighbours_dist = []
@@ -224,8 +231,8 @@ def main():
     # start_point = Point(start_coord_row, start_coord_column)
     # end_point = Point(end_coord_row, end_coord_column)
 
-    start_point = Coord(start_coord_row, start_coord_column, 'start')
-    end_point = Coord(end_coord_row, end_coord_column, 'end')
+    start_point = Coord(start_coord_row, start_coord_column, 'start', [])
+    end_point = Coord(end_coord_row, end_coord_column, 'end', [])
 
 
     reached_end = 0
@@ -237,9 +244,13 @@ def main():
 
     recorded_points.append(start_point)
 
+    # coord_array = [start_point.location]
 
-    while (reached_end == 0) and (iteration_count < max_iterations):
+    prev_coords = [start_point.location]
 
+
+    # while (reached_end == 0) and (iteration_count < max_iterations):
+    while reached_end == 0:
 
         if recorded_points[-1].location == end_point.location:
             reached_end = 1
@@ -247,7 +258,7 @@ def main():
         else:
 
             current_neighbours = Neighbours(recorded_points[-1].location[0], recorded_points[-1].location[1],
-                                            recorded_points[-1].name)
+                                            recorded_points[-1].name, recorded_points[-1].coord_array)
 
             current_neighbours.calculate_dist(recorded_points[-1])
             current_neighbours.calculate_heuristic_score(end_point)
@@ -274,6 +285,11 @@ def main():
             iteration_count += 1
 
 
+            if iteration_count % 100 == 0:
+                print("Still going")
+                print(iteration_count)
+                print("\n")
+
             # Get the neighbour points around the current point being looked at
             # first iteration, this is the start point
 
@@ -286,6 +302,8 @@ def main():
     print("\n")
     print("number of paths still in queue:", len(recorded_points))
     print("\n")
+
+    print(recorded_points[-1].coord_array)
 
     if iteration_count >= max_iterations:
         print("Maximum iterations reached")
